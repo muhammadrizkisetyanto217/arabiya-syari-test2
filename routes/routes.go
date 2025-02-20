@@ -6,30 +6,33 @@ import (
 	"arabiya-syari-api/model"
 	"net/http"
 
+	"github.com/rs/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
+	// Middleware CORS
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"}, // Izinkan semua origin (bisa diganti dengan domain tertentu)
+		AllowedMethods:   []string{"GET", "DELETE", "POST", "PUT"},
+		AllowedHeaders:   []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	})
+
+	// Gunakan CORS Middleware di Gin
 	r.Use(func(c *gin.Context) {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-        // Handle preflight request
-        if c.Request.Method == "OPTIONS" {
-            c.AbortWithStatus(204)
-            return
-        }
-
-        c.Next()
-    })
+		corsMiddleware.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c.Next()
+		})).ServeHTTP(c.Writer, c.Request)
+	})
 
 	// Route sederhana
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Welcome to Gin + GORM + PostgreSQL + CORS"})
 	})
+
 
 	// Route untuk tambah user
 	r.POST("/users", func(c *gin.Context) {
