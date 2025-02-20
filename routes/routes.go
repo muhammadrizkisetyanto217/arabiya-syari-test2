@@ -2,7 +2,7 @@ package routes
 
 import (
 	"arabiya-syari-api/config"
-	"arabiya-syari-api/middleware"
+	// "arabiya-syari-api/middleware"
 	"arabiya-syari-api/model"
 	"net/http"
 
@@ -12,8 +12,19 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	// Pasang Middleware CORS
-	r.Use(middleware.SetupCORS())
+	r.Use(func(c *gin.Context) {
+        c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+        // Handle preflight request
+        if c.Request.Method == "OPTIONS" {
+            c.AbortWithStatus(204)
+            return
+        }
+
+        c.Next()
+    })
 
 	// Route sederhana
 	r.GET("/", func(c *gin.Context) {
